@@ -1,8 +1,6 @@
 package constants
 
 const (
-	Version = "1.0.6"
-
 	TokenPrefix = "k8s-ncp-v1."
 
 	ProfileEnv         = "NCLOUD_PROFILE"
