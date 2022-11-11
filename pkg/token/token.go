@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud/credentials"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/constants"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientauthv1beta1 "k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
@@ -42,12 +41,6 @@ type generator struct {
 // NewGenerator creates a Generator and returns it.
 func NewGenerator() (Generator, error) {
 	return generator{}, nil
-}
-
-type Claims struct {
-	AccessKey string `json:"accessKey"`
-	SecretKey string `json:"secretKey"`
-	jwt.StandardClaims
 }
 
 func (g generator) Get(credential *credentials.Credentials, clusterId string, region string) (*Token, error) {

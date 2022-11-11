@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/NaverCloudPlatform/ncloud-sdk-go-v2 v1.3.3
 	github.com/deiwin/interact v0.0.0-20150409130834-720596b65af8
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.2.1
 	gopkg.in/ini.v1 v1.66.3
