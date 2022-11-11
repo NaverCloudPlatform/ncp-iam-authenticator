@@ -21,9 +21,9 @@ NAVER Cloud Platform Official Guide provides more detailed and friendly guides.
 ## Installation
 1. Specify version, os and arch you want to use.
     ```bash
-    export version="1.0.6" // available versions can be found in GitHub Releases.
-    export os="darwin" // darwin, linux, windows
-    export arch="amd64" // amd64, arm64
+    export version="1.0.6" # available versions can be found in GitHub Releases.
+    export os="darwin" # darwin, linux, windows
+    export arch="amd64" # amd64, arm64
     ```
 2. Download the `ncp-iam-authenticator` binary.
     - macOS, Linux
@@ -80,7 +80,7 @@ NAVER Cloud Platform Official Guide provides more detailed and friendly guides.
 
 ## Creating IAM authentication kubeconfig
 
-You can create a kubeconfig through `ncp-iam-authenticator`, or manually create a kubeconfig that uses `npc-iam-authenticator`, for IAM cluster authentication in Kubernetes Service.
+You can create a kubeconfig through `ncp-iam-authenticator`, or manually create a kubeconfig that uses `ncp-iam-authenticator`, for IAM cluster authentication in Kubernetes Service.
 
 ### Set ncp-iam-authenticator API authentication key value
 
@@ -100,12 +100,12 @@ Set the API key in OS environment variable or configure file. ( OS environment v
     [DEFAULT]
     ncloud_access_key_id = ACCESSKEYACCESSKEYAC
     ncloud_secret_access_key = SECRETKEYSECRETKEYSECRETKEYSECRETKEYSECR
-    ncloud_api_url = <https://ncloud.apigw.ntruss.com>
+    ncloud_api_url = https://ncloud.apigw.ntruss.com
     
     [project]
     ncloud_access_key_id = ACCESSKEYACCESSKEYAC
     ncloud_secret_access_key = SECRETKEYSECRETKEYSECRETKEYSECRETKEYSECR
-    ncloud_api_url = <https://ncloud.apigw.ntruss.com>
+    ncloud_api_url = https://ncloud.apigw.ntruss.com
     ```
 
 ### Use command ncp-iam-authenticator create-kubeconfig
