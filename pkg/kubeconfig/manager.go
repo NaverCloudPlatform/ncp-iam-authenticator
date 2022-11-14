@@ -29,7 +29,7 @@ func (m Manager) GetKubeconfig() (*KubectlConfig, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get kubernetes cluster from api")
 	}
-	if *cluster.Cluster.Status != "RUNNING" {
+	if *cluster.Cluster.Status == "CREATING" {
 		return nil, errors.New("kubernetes cluster is not running")
 	}
 
