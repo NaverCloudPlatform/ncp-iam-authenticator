@@ -9,7 +9,6 @@ import (
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -82,7 +81,7 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 				}
 			}
 
-			if err = ioutil.WriteFile(options.output, kubeconfigBytes, 0644); err != nil {
+			if err = os.WriteFile(options.output, kubeconfigBytes, 0644); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to write kubeconfig file: %v", err)
 				os.Exit(1)
 			}
