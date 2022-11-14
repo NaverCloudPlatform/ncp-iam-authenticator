@@ -44,7 +44,6 @@ func NewGenerator() (Generator, error) {
 }
 
 func (g generator) Get(credential *credentials.Credentials, clusterId string, region string) (*Token, error) {
-
 	token, err := makeToken(credential.AccessKey(), credential.SecretKey(), clusterId, region)
 
 	if err != nil {
@@ -80,7 +79,6 @@ func makeToken(accessKey string, secretKey string, clusterId string, region stri
 }
 
 func getStageFromRegion(region string) string {
-
 	if region == "" {
 		return "v1"
 	}
@@ -104,7 +102,6 @@ func getPathWithParams(clusterId string, region string) string {
 }
 
 func makeSignature(method string, uri string, accessKey string, secretKey string, timestamp string) string {
-
 	space := " "    // one space
 	newLine := "\n" // new line
 

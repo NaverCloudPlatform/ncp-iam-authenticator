@@ -47,7 +47,6 @@ func (m Manager) GetKubeconfig() (*KubectlConfig, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert string to rest config")
 	}
-
 	return &kubectlConfig, nil
 }
 
