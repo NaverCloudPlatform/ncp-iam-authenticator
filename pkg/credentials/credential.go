@@ -60,16 +60,29 @@ func (c *Config) Valid() bool {
 
 func (c *Config) WriteCredentialToFile(configPath string, profile string) {
 	file, err := getNcloudConfigFile(configPath)
-	fileSection, err := getNewSection(file, profile)
-
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	_, err = fileSection.NewKey(constants.AccessKeyIdFileKey, c.AccessKey)
-	_, err = fileSection.NewKey(constants.SecretAccessKeyFileKey, c.SecretKey)
-	_, err = fileSection.NewKey(constants.ApiUrlFileKey, c.ApiUrl)
+	fileSection, err := getNewSection(file, profile)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	if _, err = fileSection.NewKey(constants.AccessKeyIdFileKey, c.AccessKey); err != nil {
+		log.Fatal(err)
+		return
+	}
+	if _, err = fileSection.NewKey(constants.SecretAccessKeyFileKey, c.SecretKey); err != nil {
+		log.Fatal(err)
+		return
+	}
+	if _, err = fileSection.NewKey(constants.ApiUrlFileKey, c.ApiUrl); err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	err = file.SaveTo(configPath)
 
