@@ -3,29 +3,28 @@ package kubeconfig
 import (
 	"context"
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
+	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/cluster"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/utils"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
 type Manager struct {
-	clusterUuid  string
-	ncloudConfig *ncloud.Configuration
-	region       string
+	clusterUuid   string
+	clusterClient cluster.Client
+	region        string
 }
 
-func NewManager(clusterUuid string, ncloudConfig *ncloud.Configuration, region string) *Manager {
+func NewManager(clusterUuid string, clusterClient cluster.Client, region string) *Manager {
 	return &Manager{
-		clusterUuid, ncloudConfig, region,
+		clusterUuid, clusterClient, region,
 	}
 }
 
 func (m Manager) GetKubeconfig() (*KubectlConfig, error) {
-	client := vnks.NewAPIClient(m.ncloudConfig)
+	ctx := context.Background()
 
-	cluster, err := client.V2Api.ClustersUuidGet(context.Background(), &m.clusterUuid)
+	cluster, err := m.clusterClient.ClustersUuidGet(ctx, &m.clusterUuid)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get kubernetes cluster from api")
 	}
@@ -33,7 +32,7 @@ func (m Manager) GetKubeconfig() (*KubectlConfig, error) {
 		return nil, errors.New("kubernetes cluster is not running")
 	}
 
-	receivedConfig, err := client.V2Api.ClustersUuidKubeconfigGet(context.Background(), &m.clusterUuid)
+	receivedConfig, err := m.clusterClient.ClustersUuidKubeconfigGet(ctx, &m.clusterUuid)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get kubeconfig from api")

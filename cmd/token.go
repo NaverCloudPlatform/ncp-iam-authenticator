@@ -51,15 +51,21 @@ func NewTokenCmd(defaultOptions *defaultOptions) *cobra.Command {
 				os.Exit(1)
 			}
 
-			fmt.Fprintf(os.Stdout, genToken)
+			fmt.Fprint(os.Stdout, genToken)
 		},
 	}
 
 	cmd.PersistentFlags().StringVar(&options.clusterUuid, "clusterUuid", "", "clusterUuid")
 	cmd.PersistentFlags().StringVar(&options.region, "region", "", "cluster region")
 
-	cmd.MarkPersistentFlagRequired("clusterUuid")
-	cmd.MarkPersistentFlagRequired("region")
+	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to run token: %v", err)
+		os.Exit(1)
+	}
+	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to run token: %v", err)
+		os.Exit(1)
+	}
 
 	return cmd
 }

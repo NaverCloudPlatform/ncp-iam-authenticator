@@ -52,8 +52,7 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 			}
 
 			ncloudConfig := vnks.NewConfiguration(options.region, credentialConfig.APIKey)
-
-			kubeconfigManager := kubeconfig.NewManager(options.clusterUuid, ncloudConfig, options.region)
+			kubeconfigManager := kubeconfig.NewManager(options.clusterUuid, vnks.NewAPIClient(ncloudConfig).V2Api, options.region)
 
 			kubeConfig, err := kubeconfigManager.GetKubeconfig()
 			if err != nil {
@@ -87,7 +86,6 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 			}
 
 			fmt.Fprintf(os.Stdout, "kubeconfig created successfully")
-			return
 		},
 	}
 
@@ -97,8 +95,14 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "kubeconfig output path")
 	cmd.PersistentFlags().BoolVar(&options.printDebugLog, "debug", false, "debug option")
 
-	cmd.MarkPersistentFlagRequired("clusterUuid")
-	cmd.MarkPersistentFlagRequired("region")
+	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
+		os.Exit(1)
+	}
+	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
+		os.Exit(1)
+	}
 
 	return cmd
 }
