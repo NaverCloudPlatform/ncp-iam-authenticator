@@ -17,3 +17,7 @@ func PrintLog(writer io.Writer, logs []string) {
 	}
 	fmt.Fprintln(writer, "")
 }
+
+func ToPointer[T any](value T) *T {
+	return &value
+}

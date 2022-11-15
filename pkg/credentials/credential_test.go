@@ -42,7 +42,50 @@ func TestConfig_Valid(t *testing.T) {
 		fields fields
 		want   bool
 	}{
-		// TODO: Add test cases.
+		{
+			"access key empty",
+			fields{
+				APIKey: &ncloud.APIKey{
+					AccessKey: " \n\t",
+					SecretKey: "secret",
+				},
+				ApiUrl: "www.ncloud.com",
+			},
+			false,
+		},
+		{
+			"secret key empty",
+			fields{
+				APIKey: &ncloud.APIKey{
+					AccessKey: "",
+					SecretKey: " \n\t",
+				},
+				ApiUrl: "www.ncloud.com",
+			},
+			false,
+		},
+		{
+			"api url empty",
+			fields{
+				APIKey: &ncloud.APIKey{
+					AccessKey: " ",
+					SecretKey: "secret",
+				},
+				ApiUrl: " \n\t",
+			},
+			false,
+		},
+		{
+			"valid",
+			fields{
+				APIKey: &ncloud.APIKey{
+					AccessKey: "access",
+					SecretKey: "secret",
+				},
+				ApiUrl: "www.ncloud.com",
+			},
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
