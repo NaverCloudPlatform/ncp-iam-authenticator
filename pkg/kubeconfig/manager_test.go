@@ -375,10 +375,6 @@ func TestManager_GetKubeconfig(t *testing.T) {
 		clusterClient cluster.Client
 		region        string
 	}
-	//clusterGetRunning := "cluster-get-running"
-	//kubeconfigGetError := "kubeconfig-get-error"
-	//kubeconfigGetSuccess := "kubeconfig-get-success"
-
 	ctx := context.Background()
 	client := mocks.NewClient(t)
 	client.On("ClustersUuidGet", ctx, utils.ToPointer("cluster-get-error")).Return(nil, errors.New("cluster get failed"))

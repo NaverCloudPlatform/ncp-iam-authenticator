@@ -71,7 +71,14 @@ func Test_getPathWithParams(t *testing.T) {
 		args args
 		want string
 	}{
-		// TODO: Add test cases.
+		{
+			"get path with params",
+			args{
+				clusterId: "80CDD145-453B-473F-8078-D84789A5DAD3",
+				region:    "KRS",
+			},
+			"/iam/" + getStageFromRegion("KRS") + "/user?clusterUuid=80CDD145-453B-473F-8078-D84789A5DAD3",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
