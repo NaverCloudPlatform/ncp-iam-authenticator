@@ -52,8 +52,7 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 			}
 
 			ncloudConfig := vnks.NewConfiguration(options.region, credentialConfig.APIKey)
-
-			kubeconfigManager := kubeconfig.NewManager(options.clusterUuid, ncloudConfig, options.region)
+			kubeconfigManager := kubeconfig.NewManager(options.clusterUuid, vnks.NewAPIClient(ncloudConfig).V2Api, options.region)
 
 			kubeConfig, err := kubeconfigManager.GetKubeconfig()
 			if err != nil {

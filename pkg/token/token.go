@@ -44,8 +44,8 @@ func NewGenerator() (Generator, error) {
 }
 
 func (g generator) Get(credential *credentials.Credentials, clusterId string, region string) (*Token, error) {
-
-	token, err := makeToken(credential.AccessKey(), credential.SecretKey(), clusterId, region)
+	timestamp := strconv.FormatInt(makeTimestamp(), 10)
+	token, err := makeToken(timestamp, credential.AccessKey(), credential.SecretKey(), clusterId, region)
 
 	if err != nil {
 		return nil, err
@@ -56,8 +56,7 @@ func (g generator) Get(credential *credentials.Credentials, clusterId string, re
 	}, nil
 }
 
-func makeToken(accessKey string, secretKey string, clusterId string, region string) (string, error) {
-	timestamp := strconv.FormatInt(makeTimestamp(), 10)
+func makeToken(timestamp string, accessKey string, secretKey string, clusterId string, region string) (string, error) {
 	path := getPathWithParams(clusterId, region)
 	hmacSign := makeSignature("GET", path, accessKey, secretKey, timestamp)
 
