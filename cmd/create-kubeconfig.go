@@ -7,10 +7,7 @@ import (
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/utils"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
-	"path/filepath"
-	"sigs.k8s.io/yaml"
 	"strings"
 )
 
@@ -45,10 +42,6 @@ func (o *createKubeconfigOptions) SetDefault(clusterName string) {
 	}
 }
 
-var (
-	nksManager *nks.Manager
-)
-
 func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	options := &createKubeconfigOptions{}
 
@@ -59,25 +52,25 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			credentialConfig, err := credentials.NewCredentialConfig(rootOptions.configFile, rootOptions.profile)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get credential config: %v", err)
+				log.Error().Err(err).Msg("failed to get credential config")
+				fmt.Fprintf(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig and profile.")
 				os.Exit(1)
 			}
 
 			log.Debug().
 				Str("access_key", credentialConfig.APIKey.AccessKey).
 				Str("secret_key", credentialConfig.APIKey.SecretKey).
-				Str("api_gw_url", credentialConfig.ApiUrl).Msg("")
+				Str("api_gw_url", credentialConfig.ApiUrl).Msg("credential config")
 
 			nksManager = nks.NewManager(options.clusterUuid, options.region, credentialConfig.APIKey)
 
 			cluster, err := nksManager.GetCluster()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get cluster: %v", err)
-				os.Exit(1)
+				log.Fatal().Err(err).Msg("failed to get cluster")
 			}
 
 			options.SetDefault(*cluster.Name)
-			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("")
+			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("create-kubeconfig options")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			kubeconfig, err := nksManager.GetIamKubeconfig(&nks.KubeconfigParam{
@@ -87,39 +80,12 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				Profile:     rootOptions.profile,
 				ConfigFile:  rootOptions.configFile},
 			)
-
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get iam kubeconfig: %v", err)
-				os.Exit(1)
+				log.Fatal().Err(err).Msg("failed to get iam kubeconfig")
 			}
 
-			if options.format == "json" {
-				yamlBytes, err := clientcmd.Write(*kubeconfig)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "failed to write kubeconfig string: %v", err)
-					os.Exit(1)
-				}
-				jsonBytes, err := yaml.YAMLToJSON(yamlBytes)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "failed to convert yaml to json: %v", err)
-					os.Exit(1)
-				}
-
-				dir := filepath.Dir(options.output)
-				if _, err := os.Stat(dir); os.IsNotExist(err) {
-					if err = os.MkdirAll(dir, 0755); err != nil {
-						fmt.Fprintf(os.Stderr, "failed to make dir: %v", err)
-						os.Exit(1)
-					}
-				}
-				if err := os.WriteFile(options.output, jsonBytes, 0600); err != nil {
-					fmt.Fprintf(os.Stderr, "failed to write kubeconfig file: %v", err)
-				}
-			} else {
-				if err := clientcmd.WriteToFile(*kubeconfig, options.output); err != nil {
-					fmt.Fprintf(os.Stderr, "failed to write kubeconfig file: %v", err)
-					os.Exit(1)
-				}
+			if err := utils.WriteKubeconfigToFile(kubeconfig, options.format, options.output); err != nil {
+				log.Fatal().Err(err).Msg("failed to write kubeconfig to file")
 			}
 
 			fmt.Fprintf(os.Stdout, "kubeconfig created successfully")
@@ -134,11 +100,13 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&options.userName, "userName", "", "kubeconfig output user name")
 
 	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
+		log.Error().Err(err).Msg("failed to get clusterUuid")
+		fmt.Fprintf(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid")
 		os.Exit(1)
 	}
 	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
+		log.Error().Err(err).Msg("failed to get clusterUuid")
+		fmt.Fprintf(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid")
 		os.Exit(1)
 	}
 

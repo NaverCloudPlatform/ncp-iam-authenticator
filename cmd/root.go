@@ -3,12 +3,17 @@ package cmd
 import (
 	"fmt"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/constants"
+	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/nks"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/utils"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
+)
+
+var (
+	nksManager *nks.Manager
 )
 
 type rootOptions struct {
@@ -19,7 +24,7 @@ type rootOptions struct {
 
 func Execute() {
 	if err := NewDefaultCmd().Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to execute ncp-iam-authenticator: %v", err)
+		fmt.Fprintln(os.Stderr, "failed to execute ncp-iam-authenticator: %v", err)
 		os.Exit(1)
 	}
 }
@@ -36,12 +41,14 @@ func NewDefaultCmd() *cobra.Command {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 
+			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 			log.Debug().Str("profile", options.profile).Str("credentialConfig", options.configFile).Msg("")
 
 			if utils.IsEmptyString(options.configFile) {
 				home, err := os.UserHomeDir()
 				if err != nil {
-					fmt.Fprintf(os.Stdout, "failed to get homde dir: %v", err)
+					log.Error().Err(err).Msg("failed to get home directory")
+					fmt.Fprintln(os.Stdout, "run ncp-iam-authenticator failed. please check your credential config.")
 					os.Exit(1)
 				}
 				options.configFile = filepath.Join(home, constants.NcloudConfigPath, constants.NcloudConfigFile)
@@ -55,6 +62,7 @@ func NewDefaultCmd() *cobra.Command {
 
 	cmd.AddCommand(NewVersionCmd())
 	cmd.AddCommand(NewCmdCreateKubeconfig(options))
+	cmd.AddCommand(NewCmdUpdateKubeconfig(options))
 	cmd.AddCommand(NewTokenCmd(options))
 
 	cmd.CompletionOptions.DisableDefaultCmd = true
