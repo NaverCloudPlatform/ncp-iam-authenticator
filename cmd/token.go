@@ -14,7 +14,7 @@ type tokenOptions struct {
 	region      string
 }
 
-func NewTokenCmd(defaultOptions *defaultOptions) *cobra.Command {
+func NewTokenCmd(defaultOptions *rootOptions) *cobra.Command {
 	options := tokenOptions{}
 
 	cmd := &cobra.Command{
