@@ -24,8 +24,7 @@ type rootOptions struct {
 
 func Execute() {
 	if err := NewDefaultCmd().Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, "failed to execute ncp-iam-authenticator: %v", err)
-		os.Exit(1)
+		log.Fatal().Err(err).Msg("run ncp-iam-authenticator failed")
 	}
 }
 
@@ -42,7 +41,7 @@ func NewDefaultCmd() *cobra.Command {
 			}
 
 			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-			log.Debug().Str("profile", options.profile).Str("credentialConfig", options.configFile).Msg("")
+			log.Debug().Str("profile", options.profile).Str("credentialConfig", options.configFile).Msg("root options")
 
 			if utils.IsEmptyString(options.configFile) {
 				home, err := os.UserHomeDir()

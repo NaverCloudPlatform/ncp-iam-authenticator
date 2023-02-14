@@ -53,7 +53,7 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 			credentialConfig, err := credentials.NewCredentialConfig(rootOptions.configFile, rootOptions.profile)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to get credential config")
-				fmt.Fprintf(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig and profile.")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig and profile.")
 				os.Exit(1)
 			}
 
@@ -66,7 +66,9 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 
 			cluster, err := nksManager.GetCluster()
 			if err != nil {
-				log.Fatal().Err(err).Msg("failed to get cluster")
+				log.Error().Err(err).Msg("failed to get cluster")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig or clusterUuid.")
+				os.Exit(1)
 			}
 
 			options.SetDefault(*cluster.Name)
@@ -88,7 +90,7 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				log.Fatal().Err(err).Msg("failed to write kubeconfig to file")
 			}
 
-			fmt.Fprintf(os.Stdout, "kubeconfig created successfully")
+			fmt.Fprintln(os.Stdout, "kubeconfig created successfully.")
 		},
 	}
 
@@ -101,12 +103,12 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 
 	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
 		log.Error().Err(err).Msg("failed to get clusterUuid")
-		fmt.Fprintf(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid")
+		fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid flag.")
 		os.Exit(1)
 	}
 	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
-		log.Error().Err(err).Msg("failed to get clusterUuid")
-		fmt.Fprintf(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid")
+		log.Error().Err(err).Msg("failed to get region")
+		fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your region flag.")
 		os.Exit(1)
 	}
 

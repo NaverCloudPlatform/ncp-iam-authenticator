@@ -70,7 +70,8 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			credentialConfig, err := credentials.NewCredentialConfig(rootOptions.configFile, rootOptions.profile)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "failed to get credential config: %v", err)
+				log.Error().Err(err).Msg("failed to get credential config")
+				fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your credentialConfig and profile.")
 				os.Exit(1)
 			}
 
@@ -83,10 +84,15 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 
 			cluster, err := nksManager.GetCluster()
 			if err != nil {
-				log.Fatal().Err(err).Msg("failed to get cluster")
+				log.Error().Err(err).Msg("failed to get cluster")
+				fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your credentialConfig or clusterUuid.")
+				os.Exit(1)
 			}
 
-			options.SetDefault(*cluster.Name)
+			if err := options.SetDefault(*cluster.Name); err != nil {
+				log.Error().Err(err).Msg("failed to set options")
+				fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your kubeconfig env or kubeconfig flag.")
+			}
 			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("update-kubeconfig options")
 		},
 		Run: func(cmd *cobra.Command, args []string) {
@@ -98,7 +104,7 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				kubeconfig, err = clientcmd.LoadFromFile(options.kubeconfig)
 				if err != nil {
 					log.Error().Err(err).Msg("failed to load kubeconfig from file")
-					fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your kubeconfig file or kubeconfig flag")
+					fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your kubeconfig file or kubeconfig flag.")
 					os.Exit(1)
 				}
 			}
@@ -118,7 +124,7 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				log.Fatal().Err(err).Msg("failed to write kubeconfig to file")
 			}
 
-			fmt.Fprintln(os.Stdout, "kubeconfig updated successfully")
+			fmt.Fprintln(os.Stdout, "kubeconfig updated successfully.")
 		},
 	}
 
@@ -133,12 +139,12 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 
 	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
 		log.Error().Err(err).Msg("failed to get clusterUuid")
-		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid")
+		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid flag.")
 		os.Exit(1)
 	}
 	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
-		log.Error().Err(err).Msg("failed to get clusterUuid")
-		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid")
+		log.Error().Err(err).Msg("failed to get region")
+		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your region flag.")
 		os.Exit(1)
 	}
 

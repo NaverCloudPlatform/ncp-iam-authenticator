@@ -59,8 +59,8 @@ func NewTokenCmd(defaultOptions *rootOptions) *cobra.Command {
 		os.Exit(1)
 	}
 	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
-		log.Error().Err(err).Msg("failed to get clusterUuid")
-		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid")
+		log.Error().Err(err).Msg("failed to get region")
+		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your region")
 		os.Exit(1)
 	}
 
