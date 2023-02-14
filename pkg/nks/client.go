@@ -19,12 +19,6 @@ func (m Manager) GetCluster() (*vnks.Cluster, error) {
 
 func (m Manager) GetKubeconfig() (*clientcmdapi.Config, error) {
 	ctx := context.Background()
-	cluster, err := m.GetCluster()
-
-	if *cluster.Status == "CREATING" {
-		return nil, errors.New("kubernetes cluster is not running")
-	}
-
 	resp, err := m.clusterClient.ClustersUuidKubeconfigGet(ctx, &m.clusterUuid)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get kubeconfig from api")

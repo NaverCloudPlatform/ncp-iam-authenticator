@@ -70,6 +70,11 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig or clusterUuid.")
 				os.Exit(1)
 			}
+			if *cluster.Status == "CREATING" {
+				log.Error().Str("clusterStatus", *cluster.Status).Msg("cluster status is CREATING")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please try again after cluster creation is complete.")
+				os.Exit(1)
+			}
 
 			options.SetDefault(*cluster.Name)
 			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("create-kubeconfig options")
