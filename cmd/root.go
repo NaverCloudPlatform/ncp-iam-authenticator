@@ -24,7 +24,7 @@ type rootOptions struct {
 
 func Execute() {
 	if err := NewDefaultCmd().Execute(); err != nil {
-		log.Fatal().Err(err).Msg("run ncp-iam-authenticator failed")
+		os.Exit(1)
 	}
 }
 
