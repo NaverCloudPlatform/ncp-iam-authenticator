@@ -149,12 +149,12 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	cmd.PersistentFlags().BoolVar(&options.overwrite, "overwrite", false, "if the cluster name, user name, or context name is duplicated, overwrite them")
 	cmd.PersistentFlags().BoolVar(&options.currentContext, "currentContext", true, "set current-context")
 
-	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
+	if err := cmd.MarkFlagRequired("clusterUuid"); err != nil {
 		log.Error().Err(err).Msg("failed to get clusterUuid")
 		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid flag.")
 		os.Exit(1)
 	}
-	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
+	if err := cmd.MarkFlagRequired("region"); err != nil {
 		log.Error().Err(err).Msg("failed to get region")
 		fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your region flag.")
 		os.Exit(1)

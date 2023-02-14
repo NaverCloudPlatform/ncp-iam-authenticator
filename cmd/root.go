@@ -40,7 +40,6 @@ func NewDefaultCmd() *cobra.Command {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 			}
 
-			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 			log.Debug().Str("profile", options.profile).Str("credentialConfig", options.configFile).Msg("root options")
 
 			if utils.IsEmptyString(options.configFile) {

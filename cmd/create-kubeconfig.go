@@ -106,12 +106,12 @@ func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&options.clusterName, "clusterName", "", "kubeconfig output cluster name")
 	cmd.PersistentFlags().StringVar(&options.userName, "userName", "", "kubeconfig output user name")
 
-	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
+	if err := cmd.MarkFlagRequired("clusterUuid"); err != nil {
 		log.Error().Err(err).Msg("failed to get clusterUuid")
 		fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid flag.")
 		os.Exit(1)
 	}
-	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
+	if err := cmd.MarkFlagRequired("region"); err != nil {
 		log.Error().Err(err).Msg("failed to get region")
 		fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your region flag.")
 		os.Exit(1)
