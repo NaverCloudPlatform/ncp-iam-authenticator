@@ -16,6 +16,17 @@ const (
 )
 
 const (
-	DefaultConfigPath = ".ncloud"
-	DefaultConfigFile = "configure"
+	NcloudConfigPath = ".ncloud"
+	NcloudConfigFile = "configure"
+)
+
+const (
+	KubeconfigEnv      = "KUBECONFIG"
+	KubeconfigRootDir  = ".kube"
+	KubeconfigFileName = "config"
+)
+
+const (
+	NksKubeconfigClusterName = "kubernetes"
+	NksKubeconfigContextName = "kubernetes-admin@kubernetes"
 )

@@ -42,7 +42,7 @@ func Test_generator_FormatJSON(t *testing.T) {
 		{
 			"generate formatJSON",
 			args{token: Token{Token: "test"}},
-			"{\"kind\":\"ExecCredential\",\"apiVersion\":\"client.authentication.k8s.io/v1beta1\",\"spec\":{},\"status\":{\"token\":\"test\"}}",
+			"{\"kind\":\"ExecCredential\",\"apiVersion\":\"client.authentication.k8s.io/v1beta1\",\"spec\":{\"interactive\":false},\"status\":{\"token\":\"test\"}}",
 			false,
 		},
 	}

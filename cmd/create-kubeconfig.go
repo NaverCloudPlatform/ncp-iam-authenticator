@@ -1,91 +1,112 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/services/vnks"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/credentials"
-	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/kubeconfig"
+	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/nks"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/utils"
+	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	"os"
 	"strings"
 )
 
 type createKubeconfigOptions struct {
-	printDebugLog bool
-	format        string
-	output        string
-	clusterUuid   string
-	region        string
+	format      string
+	output      string
+	clusterUuid string
+	region      string
+	clusterName string
+	userName    string
+	contextName string
 }
 
-func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
+func (o *createKubeconfigOptions) SetDefault(clusterName string) {
+	o.region = strings.ToUpper(o.region)
+	defaultName := fmt.Sprintf("nks_%s_%s_%s", strings.ToLower(o.region), clusterName, o.clusterUuid)
+	if utils.IsEmptyString(o.output) {
+		o.output = fmt.Sprintf("kubeconfig-%s.yaml", o.clusterUuid)
+	}
+
+	var isClusterNameFlagEmpty, IsUserNameFlagEmpty bool
+	if isClusterNameFlagEmpty = utils.IsEmptyString(o.clusterName); isClusterNameFlagEmpty {
+		o.clusterName = defaultName
+	}
+	if IsUserNameFlagEmpty = utils.IsEmptyString(o.userName); IsUserNameFlagEmpty {
+		o.userName = defaultName
+	}
+	if isClusterNameFlagEmpty && IsUserNameFlagEmpty {
+		o.contextName = o.clusterName
+	} else {
+		o.contextName = fmt.Sprintf("%s@%s", o.userName, o.clusterName)
+	}
+}
+
+func NewCmdCreateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	options := &createKubeconfigOptions{}
 
 	cmd := &cobra.Command{
 		Use:   "create-kubeconfig",
 		Short: "Get Kubeconfig to access kubernetes",
 		Long:  ``,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if err := cmd.MarkFlagRequired("clusterUuid"); err != nil {
+				log.Error().Err(err).Msg("failed to get clusterUuid")
+				fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your clusterUuid flag.")
+				os.Exit(1)
+			}
+			if err := cmd.MarkFlagRequired("region"); err != nil {
+				log.Error().Err(err).Msg("failed to get region")
+				fmt.Fprintln(os.Stdout, "failed to run create-kubeconfig. please check your region flag.")
+				os.Exit(1)
+			}
+
+			credentialConfig, err := credentials.NewCredentialConfig(rootOptions.configFile, rootOptions.profile)
+			if err != nil {
+				log.Error().Err(err).Msg("failed to get credential config")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig and profile.")
+				os.Exit(1)
+			}
+
+			log.Debug().
+				Str("access_key", credentialConfig.APIKey.AccessKey).
+				Str("secret_key", credentialConfig.APIKey.SecretKey).
+				Str("api_gw_url", credentialConfig.ApiUrl).Msg("credential config")
+
+			nksManager = nks.NewManager(options.clusterUuid, options.region, credentialConfig.APIKey)
+
+			cluster, err := nksManager.GetCluster()
+			if err != nil {
+				log.Error().Err(err).Msg("failed to get cluster")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please check your credentialConfig or clusterUuid.")
+				os.Exit(1)
+			}
+			if *cluster.Status == "CREATING" {
+				log.Error().Str("clusterStatus", *cluster.Status).Msg("cluster status is CREATING")
+				fmt.Fprintln(os.Stdout, "run create-kubeconfig failed. please try again after cluster creation is complete.")
+				os.Exit(1)
+			}
+
+			options.SetDefault(*cluster.Name)
+			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("create-kubeconfig options")
+		},
 		Run: func(cmd *cobra.Command, args []string) {
-			if options.printDebugLog {
-				utils.PrintLog(os.Stdout, []string{
-					fmt.Sprintf("PROFILE: %s", defaultOptions.profile),
-					fmt.Sprintf("CONFIG FILE: %s", defaultOptions.configFile),
-				})
-			}
-
-			options.region = strings.ToUpper(options.region)
-			options.output = getOutputFileName(options.output, options.clusterUuid)
-
-			credentialConfig, err := credentials.NewCredentialConfig(defaultOptions.configFile, defaultOptions.profile)
-			if options.printDebugLog {
-				utils.PrintLog(os.Stdout, []string{
-					fmt.Sprintf("ACCESS_KEY: %s", credentialConfig.APIKey.AccessKey),
-					fmt.Sprintf("API_GW_URL: %s", credentialConfig.ApiUrl),
-				})
-			}
+			kubeconfig, err := nksManager.GetIamKubeconfig(&nks.KubeconfigParam{
+				ClusterName: options.clusterName,
+				UserName:    options.userName,
+				ContextName: options.contextName,
+				Profile:     rootOptions.profile,
+				ConfigFile:  rootOptions.configFile},
+			)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not get credential config: %v", err)
-				os.Exit(1)
+				log.Fatal().Err(err).Msg("failed to get iam kubeconfig")
 			}
 
-			ncloudConfig := vnks.NewConfiguration(options.region, credentialConfig.APIKey)
-			kubeconfigManager := kubeconfig.NewManager(options.clusterUuid, vnks.NewAPIClient(ncloudConfig).V2Api, options.region)
-
-			kubeConfig, err := kubeconfigManager.GetKubeconfig()
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "failed to get kubeconfig: %v", err)
-				os.Exit(1)
+			if err := utils.WriteKubeconfigToFile(kubeconfig, options.format, options.output); err != nil {
+				log.Fatal().Err(err).Msg("failed to write kubeconfig to file")
 			}
 
-			kubeconfigManager.ApplyIamToKubeconfig(kubeConfig, defaultOptions.profile, defaultOptions.configFile, defaultOptions.setDefaultConfigFile)
-
-			var kubeconfigBytes []byte
-
-			if options.format == "yaml" {
-				kubeconfigBytes, err = yaml.Marshal(kubeConfig)
-
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "failed to marshal kubeconfig yaml: %v", err)
-					os.Exit(1)
-				}
-			} else if options.format == "json" {
-				kubeconfigBytes, err = json.Marshal(kubeConfig)
-
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "failed to marshal kubeconfig yaml: %v", err)
-					os.Exit(1)
-				}
-			}
-
-			if err = os.WriteFile(options.output, kubeconfigBytes, 0644); err != nil {
-				fmt.Fprintf(os.Stderr, "failed to write kubeconfig file: %v", err)
-				os.Exit(1)
-			}
-
-			fmt.Fprintf(os.Stdout, "kubeconfig created successfully")
+			fmt.Fprintln(os.Stdout, "kubeconfig created successfully.")
 		},
 	}
 
@@ -93,24 +114,8 @@ func NewCmdCreateKubeconfig(defaultOptions *defaultOptions) *cobra.Command {
 	cmd.PersistentFlags().StringVar(&options.region, "region", "", "cluster region")
 	cmd.PersistentFlags().StringVar(&options.format, "format", "yaml", "format")
 	cmd.PersistentFlags().StringVarP(&options.output, "output", "o", "", "kubeconfig output path")
-	cmd.PersistentFlags().BoolVar(&options.printDebugLog, "debug", false, "debug option")
-
-	if err := cmd.MarkPersistentFlagRequired("clusterUuid"); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
-		os.Exit(1)
-	}
-	if err := cmd.MarkPersistentFlagRequired("region"); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to run create-kubeconfig: %v", err)
-		os.Exit(1)
-	}
+	cmd.PersistentFlags().StringVar(&options.clusterName, "clusterName", "", "kubeconfig output cluster name")
+	cmd.PersistentFlags().StringVar(&options.userName, "userName", "", "kubeconfig output user name")
 
 	return cmd
-}
-
-func getOutputFileName(output, clusterUuid string) string {
-	if utils.IsEmptyString(output) {
-		return "kubeconfig-" + clusterUuid + ".yaml"
-	}
-
-	return output
 }
