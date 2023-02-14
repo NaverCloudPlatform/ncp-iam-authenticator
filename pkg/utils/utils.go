@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
@@ -51,4 +52,21 @@ func PrettyJsonBytes(b []byte) []byte {
 	var prettyJSON bytes.Buffer
 	json.Indent(&prettyJSON, b, "", "    ")
 	return prettyJSON.Bytes()
+}
+
+func ValidateKubeconfigDupliacted(clusterName, userName, contextName string, config *clientcmdapi.Config) error {
+	var duplicateName []string
+	if _, exist := config.Clusters[clusterName]; exist {
+		duplicateName = append(duplicateName, "cluster name: "+clusterName)
+	}
+	if _, exist := config.Clusters[userName]; exist {
+		duplicateName = append(duplicateName, "user name: "+userName)
+	}
+	if _, exist := config.Clusters[contextName]; exist {
+		duplicateName = append(duplicateName, "context name: "+contextName)
+	}
+	if len(duplicateName) != 0 {
+		return fmt.Errorf("some names are duplicated: %s", strings.Join(duplicateName, ", "))
+	}
+	return nil
 }

@@ -9,7 +9,6 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type KubeconfigParam struct {
@@ -49,22 +48,6 @@ func (m Manager) GetIamKubeconfig(param *KubeconfigParam) (*clientcmdapi.Config,
 }
 
 func (m Manager) UpdateIamKubeconfig(param *KubeconfigParam, config *clientcmdapi.Config, overwrite bool) error {
-	if !overwrite {
-		var duplicateName []string
-		if _, exist := config.Clusters[param.ClusterName]; exist {
-			duplicateName = append(duplicateName, "cluster name: "+param.ClusterName)
-		}
-		if _, exist := config.Clusters[param.UserName]; exist {
-			duplicateName = append(duplicateName, "user name: "+param.UserName)
-		}
-		if _, exist := config.Clusters[param.ContextName]; exist {
-			duplicateName = append(duplicateName, "context name: "+param.ContextName)
-		}
-		if len(duplicateName) != 0 {
-			return fmt.Errorf("some names are duplicated: %s. if you want to overwrite it, please use --overwrite flag", strings.Join(duplicateName, ", "))
-		}
-	}
-
 	orgCfg, err := m.GetKubeconfig()
 	if err != nil {
 		return errors.Wrap(err, "get kubeconfig failed")

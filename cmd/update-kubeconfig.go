@@ -114,6 +114,13 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				}
 			}
 
+			if !options.overwrite {
+				if err := utils.ValidateKubeconfigDupliacted(options.clusterName, options.userName, options.contextName, kubeconfig); err != nil {
+					log.Error().Err(err).Msg("duplicated name")
+					fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your kubeconfig's clusterName, userName, contextName. if you want to overwrite it, please use --overwrite flag")
+					os.Exit(1)
+				}
+			}
 			if err := nksManager.UpdateIamKubeconfig(&nks.KubeconfigParam{
 				ClusterName:    options.clusterName,
 				UserName:       options.userName,
