@@ -34,7 +34,7 @@ func (m Manager) GetIamKubeconfig(param *KubeconfigParam) (*clientcmdapi.Config,
 	cfg.Clusters[param.ClusterName] = cluster
 	delete(cfg.Clusters, constants.NksKubeconfigClusterName)
 
-	cfg.AuthInfos[param.UserName] = m.makeIamUser(param.Profile, param.ConfigFile)
+	cfg.AuthInfos[param.UserName] = m.makeIamUser(param.ConfigFile, param.Profile)
 
 	delete(cfg.Contexts, constants.NksKubeconfigContextName)
 	cfg.Contexts[param.ContextName] = &clientcmdapi.Context{
