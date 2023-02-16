@@ -101,7 +101,7 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				Str("secret_key", credentialConfig.APIKey.SecretKey).
 				Str("api_gw_url", credentialConfig.ApiUrl).Msg("credential config")
 
-			nksManager = nks.NewManager(options.clusterUuid, options.region, credentialConfig.APIKey)
+			nksManager = nks.NewManager(options.clusterUuid, strings.ToUpper(options.region), credentialConfig.APIKey)
 
 			cluster, err := nksManager.GetCluster()
 			if err != nil {
