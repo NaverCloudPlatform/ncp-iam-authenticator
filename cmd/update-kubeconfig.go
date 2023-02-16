@@ -32,6 +32,9 @@ func (o *updateKubeconfigOptions) setDefault(clusterName string) error {
 	o.region = strings.ToUpper(o.region)
 	defaultName := fmt.Sprintf("nks_%s_%s_%s", strings.ToLower(o.region), clusterName, o.clusterUuid)
 
+	if o.format != "json" {
+		o.format = "yaml"
+	}
 	var isClusterNameFlagEmpty, IsUserNameFlagEmpty bool
 	if isClusterNameFlagEmpty = utils.IsEmptyString(o.clusterName); isClusterNameFlagEmpty {
 		o.clusterName = defaultName

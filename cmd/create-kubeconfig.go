@@ -24,6 +24,10 @@ type createKubeconfigOptions struct {
 func (o *createKubeconfigOptions) setDefault(clusterName string) {
 	o.region = strings.ToUpper(o.region)
 	defaultName := fmt.Sprintf("nks_%s_%s_%s", strings.ToLower(o.region), clusterName, o.clusterUuid)
+
+	if o.format != "json" {
+		o.format = "yaml"
+	}
 	if utils.IsEmptyString(o.output) {
 		o.output = fmt.Sprintf("kubeconfig-%s.%s", o.clusterUuid, o.format)
 	}
