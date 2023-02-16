@@ -28,7 +28,7 @@ type updateKubeconfigOptions struct {
 	currentContext bool
 }
 
-func (o *updateKubeconfigOptions) SetDefault(clusterName string) error {
+func (o *updateKubeconfigOptions) setDefault(clusterName string) error {
 	o.region = strings.ToUpper(o.region)
 	defaultName := fmt.Sprintf("nks_%s_%s_%s", strings.ToLower(o.region), clusterName, o.clusterUuid)
 
@@ -60,6 +60,20 @@ func (o *updateKubeconfigOptions) SetDefault(clusterName string) error {
 	return nil
 }
 
+func (o *updateKubeconfigOptions) checkRequired() error {
+	var errorList []string
+	if o.region == "" {
+		errorList = append(errorList, "--region")
+	}
+	if o.clusterUuid == "" {
+		errorList = append(errorList, "--clusterUuid")
+	}
+	if len(errorList) != 0 {
+		return fmt.Errorf("required flag %s not set", strings.Join(errorList, ", "))
+	}
+	return nil
+}
+
 func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 	options := &updateKubeconfigOptions{}
 
@@ -68,14 +82,10 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 		Short: "update Kubeconfig to access kubernetes",
 		Long:  ``,
 		PreRun: func(cmd *cobra.Command, args []string) {
-			if err := cmd.MarkFlagRequired("clusterUuid"); err != nil {
-				log.Error().Err(err).Msg("failed to get clusterUuid")
-				fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your clusterUuid flag.")
-				os.Exit(1)
-			}
-			if err := cmd.MarkFlagRequired("region"); err != nil {
-				log.Error().Err(err).Msg("failed to get region")
-				fmt.Fprintln(os.Stdout, "failed to run update-kubeconfig. please check your region flag.")
+			log.Debug().Str("options", fmt.Sprintf("%+v", options)).Msg("init update-kubeconfig options")
+			if err := options.checkRequired(); err != nil {
+				log.Error().Err(err).Msg("required flags not set")
+				fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your required flags.")
 				os.Exit(1)
 			}
 
@@ -105,7 +115,7 @@ func NewCmdUpdateKubeconfig(rootOptions *rootOptions) *cobra.Command {
 				os.Exit(1)
 			}
 
-			if err := options.SetDefault(*cluster.Name); err != nil {
+			if err := options.setDefault(*cluster.Name); err != nil {
 				log.Error().Err(err).Msg("failed to set options")
 				fmt.Fprintln(os.Stdout, "run update-kubeconfig failed. please check your kubeconfig env or kubeconfig flag.")
 			}

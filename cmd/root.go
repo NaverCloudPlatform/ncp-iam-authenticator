@@ -50,6 +50,14 @@ func NewDefaultCmd() *cobra.Command {
 					os.Exit(1)
 				}
 				options.configFile = filepath.Join(home, constants.NcloudConfigPath, constants.NcloudConfigFile)
+			} else {
+				absConfigFile, err := filepath.Abs(options.configFile)
+				if err != nil {
+					log.Error().Err(err).Msg("failed to get credentialConfig absolute path")
+					fmt.Fprintln(os.Stdout, "run ncp-iam-authenticator failed. please check your credential config.")
+					os.Exit(1)
+				}
+				options.configFile = absConfigFile
 			}
 		},
 	}

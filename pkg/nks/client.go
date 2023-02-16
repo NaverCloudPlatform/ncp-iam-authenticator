@@ -8,6 +8,11 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+type Client interface {
+	ClustersUuidGet(ctx context.Context, uuid *string) (*vnks.ClusterRes, error)
+	ClustersUuidKubeconfigGet(ctx context.Context, uuid *string) (*vnks.KubeconfigRes, error)
+}
+
 func (m Manager) GetCluster() (*vnks.Cluster, error) {
 	ctx := context.Background()
 	cluster, err := m.clusterClient.ClustersUuidGet(ctx, &m.clusterUuid)

@@ -59,10 +59,10 @@ func ValidateKubeconfigDupliacted(clusterName, userName, contextName string, con
 	if _, exist := config.Clusters[clusterName]; exist {
 		duplicateName = append(duplicateName, "cluster name: "+clusterName)
 	}
-	if _, exist := config.Clusters[userName]; exist {
+	if _, exist := config.AuthInfos[userName]; exist {
 		duplicateName = append(duplicateName, "user name: "+userName)
 	}
-	if _, exist := config.Clusters[contextName]; exist {
+	if _, exist := config.Contexts[contextName]; exist {
 		duplicateName = append(duplicateName, "context name: "+contextName)
 	}
 	if len(duplicateName) != 0 {
