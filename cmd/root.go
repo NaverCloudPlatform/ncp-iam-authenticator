@@ -62,8 +62,8 @@ func NewDefaultCmd() *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&options.profile, "profile", "", "profile")
-	cmd.PersistentFlags().StringVar(&options.configFile, "credentialConfig", os.Getenv(constants.ProfileEnv), "credential config path (default : ~/.ncloud/configure)")
+	cmd.PersistentFlags().StringVar(&options.profile, "profile", os.Getenv(constants.ProfileEnv), "profile")
+	cmd.PersistentFlags().StringVar(&options.configFile, "credentialConfig", "", "credential config path (default : ~/.ncloud/configure)")
 	cmd.PersistentFlags().BoolVar(&options.printDebugLog, "debug", false, "debug option")
 
 	cmd.AddCommand(NewVersionCmd())
