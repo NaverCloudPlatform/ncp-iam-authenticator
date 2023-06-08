@@ -79,20 +79,15 @@ func makeToken(timestamp string, accessKey string, secretKey string, clusterId s
 }
 
 func getStageFromRegion(region string) string {
-
-	if region == "" {
+	switch {
+	case region == "":
+		fallthrough
+	case region == "KR":
+		fallthrough
+	case strings.HasPrefix(region, "F"):
+		fallthrough
+	case strings.Contains(region, "CS"):
 		return "v1"
-	}
-
-	switch region {
-	case "FKR":
-		return "v1"
-	case "KR":
-		return "v1"
-	case "SGN":
-		return "sgn-v1"
-	case "KRS":
-		return "krs-v1"
 	default:
 		return strings.ToLower(region) + "-v1"
 	}

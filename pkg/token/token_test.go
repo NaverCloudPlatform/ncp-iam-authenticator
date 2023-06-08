@@ -116,6 +116,15 @@ func Test_getStageFromRegion(t *testing.T) {
 		{
 			"JPN", args{region: "JPN"}, "jpn-v1",
 		},
+		{
+			"PCS01", args{region: "PCS01"}, "v1",
+		},
+		{
+			"FCS01", args{region: "FCS01"}, "v1",
+		},
+		{
+			"GCS01", args{region: "GCS01"}, "v1",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

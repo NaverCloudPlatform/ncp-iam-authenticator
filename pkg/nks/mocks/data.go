@@ -15,7 +15,7 @@ var CreatingClusterRes = vnks.ClusterRes{
 		NodeCount:         utils.ToPointer(int32(1)),
 		NodeMaxCount:      utils.ToPointer(int32(1)),
 		CpuCount:          utils.ToPointer(int32(2)),
-		MemorySize:        utils.ToPointer(int32(8)),
+		MemorySize:        utils.ToPointer(int64(8)),
 		CreatedAt:         utils.ToPointer("2022-10-31T05:19:27.000Z"),
 		Endpoint:          utils.ToPointer("https://85782929-3DC0-4DAC-9DF9-C4CC5AA8TEST.kr.vnks.ntruss.com"),
 		K8sVersion:        utils.ToPointer("1.23.9-nks.1"),
@@ -34,7 +34,7 @@ var CreatingClusterRes = vnks.ClusterRes{
 		ZoneNo:            utils.ToPointer(int32(3)),
 		LoginKeyName:      utils.ToPointer("test"),
 		Log:               &vnks.ClusterLogInput{Audit: utils.ToPointer(false)},
-		NodePool: []*vnks.NodePoolRes{
+		NodePool: []*vnks.NodePool{
 			{
 				InstanceNo:     utils.ToPointer(int32(1)),
 				K8sVersion:     utils.ToPointer("1.23.9"),
@@ -63,7 +63,7 @@ var RunningClusteRes = vnks.ClusterRes{
 		NodeCount:         utils.ToPointer(int32(1)),
 		NodeMaxCount:      utils.ToPointer(int32(1)),
 		CpuCount:          utils.ToPointer(int32(2)),
-		MemorySize:        utils.ToPointer(int32(8)),
+		MemorySize:        utils.ToPointer(int64(8)),
 		CreatedAt:         utils.ToPointer("2022-10-31T05:19:27.000Z"),
 		Endpoint:          utils.ToPointer("https://85782929-3DC0-4DAC-9DF9-C4CC5AA8TEST.kr.vnks.ntruss.com"),
 		K8sVersion:        utils.ToPointer("1.23.9-nks.1"),
@@ -82,7 +82,7 @@ var RunningClusteRes = vnks.ClusterRes{
 		ZoneNo:            utils.ToPointer(int32(3)),
 		LoginKeyName:      utils.ToPointer("test"),
 		Log:               &vnks.ClusterLogInput{Audit: utils.ToPointer(false)},
-		NodePool: []*vnks.NodePoolRes{
+		NodePool: []*vnks.NodePool{
 			{
 				InstanceNo:     utils.ToPointer(int32(1)),
 				K8sVersion:     utils.ToPointer("1.23.9"),
