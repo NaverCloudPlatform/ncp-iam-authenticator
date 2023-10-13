@@ -28,11 +28,11 @@ NAVER Cloud Platform Official Guide provides more detailed and friendly guides.
 2. Download the `ncp-iam-authenticator` binary.
     - macOS, Linux
     ```bash
-    curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/download/v${version}/ncp-iam-authenticator_${version}_${os}_${arch}
+    curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/download/v${version}/ncp-iam-authenticator_${os}_${arch}
     ```
     - windows (PowerShell)
     ```bash
-    curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/download/v${version}/ncp-iam-authenticator_${version}_windows_amd64.exe
+    curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/download/v${version}/ncp-iam-authenticator_windows_amd64.exe
     ```
 3. (Optional) You can use SHA-256 SUM to check the downloaded binary file.
     1. Check the sum of SHA-256 of the `ncp-iam-authenticator` binary file.
