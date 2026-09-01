@@ -3,6 +3,7 @@ package token
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestNewGenerator(t *testing.T) {
@@ -41,8 +42,11 @@ func Test_generator_FormatJSON(t *testing.T) {
 	}{
 		{
 			"generate formatJSON",
-			args{token: Token{Token: "test"}},
-			"{\"kind\":\"ExecCredential\",\"apiVersion\":\"client.authentication.k8s.io/v1beta1\",\"spec\":{\"interactive\":false},\"status\":{\"token\":\"test\"}}",
+			args{token: Token{
+				Token:      "test",
+				Expiration: time.Date(2026, 9, 1, 13, 4, 0, 0, time.UTC),
+			}},
+			"{\"kind\":\"ExecCredential\",\"apiVersion\":\"client.authentication.k8s.io/v1beta1\",\"spec\":{\"interactive\":false},\"status\":{\"expirationTimestamp\":\"2026-09-01T13:04:00Z\",\"token\":\"test\"}}",
 			false,
 		},
 	}

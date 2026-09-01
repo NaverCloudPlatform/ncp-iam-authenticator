@@ -5,15 +5,21 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud/credentials"
 	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/constants"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientauthv1beta1 "k8s.io/client-go/pkg/apis/clientauthentication/v1beta1"
-	"strconv"
-	"strings"
-	"time"
 )
+
+// tokenValidity is how long a generated token is reported as usable through
+// ExecCredential.Status.ExpirationTimestamp.
+const tokenValidity = 240 * time.Second
 
 // Generator provides new JWT tokens
 type Generator interface {
@@ -25,7 +31,8 @@ type Generator interface {
 
 // Token is generated and used by Kubernetes client-go to authenticate with a Kubernetes cluster.
 type Token struct {
-	Token string
+	Token      string
+	Expiration time.Time
 }
 
 type Claim struct {
@@ -44,7 +51,8 @@ func NewGenerator() (Generator, error) {
 }
 
 func (g generator) Get(credential *credentials.Credentials, clusterId string, region string) (*Token, error) {
-	timestamp := strconv.FormatInt(makeTimestamp(), 10)
+	issuedAt := time.Now()
+	timestamp := strconv.FormatInt(makeTimestamp(issuedAt), 10)
 	token, err := makeToken(timestamp, credential.AccessKey(), credential.SecretKey(), clusterId, region)
 
 	if err != nil {
@@ -52,7 +60,8 @@ func (g generator) Get(credential *credentials.Credentials, clusterId string, re
 	}
 
 	return &Token{
-		Token: token,
+		Token:      token,
+		Expiration: issuedAt.Add(tokenValidity),
 	}, nil
 }
 
@@ -114,8 +123,8 @@ func makeSignature(method string, uri string, accessKey string, secretKey string
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+func makeTimestamp(t time.Time) int64 {
+	return t.UnixNano() / int64(time.Millisecond)
 }
 
 // FormatJSON formats the json to support ExecCredential authentication
@@ -126,7 +135,8 @@ func (g generator) FormatJSON(token Token) (string, error) {
 			Kind:       "ExecCredential",
 		},
 		Status: &clientauthv1beta1.ExecCredentialStatus{
-			Token: token.Token,
+			ExpirationTimestamp: &metav1.Time{Time: token.Expiration},
+			Token:               token.Token,
 		},
 	}
 	enc, err := json.Marshal(execInput)
