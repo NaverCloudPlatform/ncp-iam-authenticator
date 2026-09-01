@@ -1,9 +1,16 @@
 package token
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/NaverCloudPlatform/ncloud-sdk-go-v2/ncloud/credentials"
+	"github.com/NaverCloudPlatform/ncp-iam-authenticator/pkg/constants"
 )
 
 func TestNewGenerator(t *testing.T) {
@@ -209,6 +216,102 @@ func Test_makeToken(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("makeToken() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func decodeClaim(t *testing.T, token string) Claim {
+	t.Helper()
+
+	if !strings.HasPrefix(token, constants.TokenPrefix) {
+		t.Fatalf("token = %v, want prefix %v", token, constants.TokenPrefix)
+	}
+
+	raw, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(token, constants.TokenPrefix))
+	if err != nil {
+		t.Fatalf("failed to decode token: %v", err)
+	}
+
+	var claim Claim
+	if err := json.Unmarshal(raw, &claim); err != nil {
+		t.Fatalf("failed to unmarshal claim: %v", err)
+	}
+
+	return claim
+}
+
+func Test_generator_Get(t *testing.T) {
+	type args struct {
+		accessKey string
+		secretKey string
+		clusterId string
+		region    string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"get token",
+			args{
+				accessKey: "access",
+				secretKey: "secret",
+				clusterId: "D11328F1-ECA9-4F1B-BA22-921F61D9C5FF",
+				region:    "KRS",
+			},
+			false,
+		},
+		{
+			"get token with empty region",
+			args{
+				accessKey: "access",
+				secretKey: "secret",
+				clusterId: "D11328F1-ECA9-4F1B-BA22-921F61D9C5FF",
+				region:    "",
+			},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := generator{}
+			credential := credentials.NewValueProviderCreds(tt.args.accessKey, tt.args.secretKey)
+
+			before := time.Now()
+			got, err := g.Get(credential, tt.args.clusterId, tt.args.region)
+			after := time.Now()
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+
+			if got.Expiration.Before(before.Add(tokenValidity)) || got.Expiration.After(after.Add(tokenValidity)) {
+				t.Errorf("Get() Expiration = %v, want within [%v, %v]",
+					got.Expiration, before.Add(tokenValidity), after.Add(tokenValidity))
+			}
+
+			claim := decodeClaim(t, got.Token)
+			gotTimestamp, err := strconv.ParseInt(claim.TimeStamp, 10, 64)
+			if err != nil {
+				t.Fatalf("failed to parse claim timestamp %q: %v", claim.TimeStamp, err)
+			}
+			if wantTimestamp := makeTimestamp(got.Expiration.Add(-tokenValidity)); gotTimestamp != wantTimestamp {
+				t.Errorf("Get() claim timestamp = %v, want %v (Expiration - tokenValidity)",
+					gotTimestamp, wantTimestamp)
+			}
+
+			wantToken, err := makeToken(claim.TimeStamp, tt.args.accessKey, tt.args.secretKey, tt.args.clusterId, tt.args.region)
+			if err != nil {
+				t.Fatalf("makeToken() error = %v", err)
+			}
+			if got.Token != wantToken {
+				t.Errorf("Get() Token = %v, want %v", got.Token, wantToken)
 			}
 		})
 	}
